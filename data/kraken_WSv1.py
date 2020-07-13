@@ -25,7 +25,7 @@ class KrakenWSMethods():
 
         self.__connect()
 
-    def __subscribe_public(self,feed,productIds=None):
+    def subscribe_public(self,feed,productIds=None):
         """subscribe to give feed and product ids"""
 
         if productIds is None:
@@ -37,15 +37,16 @@ class KrakenWSMethods():
             requestMessage = {
                 "event": "subscribe",
                 "feed": feed,
-                "productIds": productIds
+                "product_ids": productIds
             }
 
         print("public subscribe to %s",feed)
 
         requestJson = json.dumps(requestMessage)
+        print(requestJson)
         self.ws.send(requestJson)
 
-    def __unsubscribe_public(self,feed,productIds=None):
+    def unsubscribe_public(self,feed,productIds=None):
         """subscribe to give feed and product ids"""
 
         if productIds is None:
@@ -57,31 +58,13 @@ class KrakenWSMethods():
             requestMessage = {
                 "event": "unsubscribe",
                 "feed": feed,
-                "productIds": productIds
+                "product_ids": productIds
             }
 
         print("public unsubscribe to %s",feed)
 
         requestJson = json.dumps(requestMessage)
         self.ws.send(requestJson)
-
-    def __request_challenge(self):
-        """Request a challenge from Crypto Facilities Ltd"""
-
-        requestMessage = {
-            "event": "challenge",
-            "api_key": self.apiKey
-        }
-
-        requestJson = json.dumps(requestMessage)
-        self.ws.send(requestJson)
-
-    def __wait_for_challenge_auth(self):
-        self.__request_challenge()
-
-        print("waiting for challenge...")
-        while not self.challengeReady:
-            sleep(1)
 
     def __connect(self):
         self.ws = websocket.WebSocketApp(self.baseUrl,
@@ -113,31 +96,4 @@ class KrakenWSMethods():
 
     def __on_message(self, message):
         messageJson = json.loads(message)
-
         print(messageJson)
-
-        if messageJson.get("event","") == "challenge":
-            self.originalChallenge = messageJson["message"]
-            self.signedChallenge = self.__sign_challenge(self.originalChallenge)
-            self.challengeReady = True
-
-    def __sign_challenge(self,challenge):
-
-        """Hash the challenge with the SHA-256 algorithm"""
-
-        sha256Hash = hashlib.sha256()
-        sha256Hash.update(challenge.encode("utf8"))
-        hashDigest = sha256Hash.digest()
-
-        """Base64-decode your api_secret"""
-        privateDecoded = base64.b64decode(self.privateKey)
-
-        """Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm"""
-        hmacDigest = hmac.new(privateDecoded, hashDigest, hashlib.sha512).digest()
-
-        """Base64-encode the result of step 3"""
-        sch = base64.b64encode(hmacDigest).decode("utf-8")
-
-        return sch
-
-print("done")
