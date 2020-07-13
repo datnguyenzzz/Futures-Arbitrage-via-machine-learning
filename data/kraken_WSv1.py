@@ -6,15 +6,16 @@ import sys
 import websocket
 
 from time import sleep
+from threading import Thread
 
 class KrakenWSMethods():
     """Web Socket Connector"""
 
     def __init__(self,baseUrl,apiKey="",privateKey="",timeout=5,trace=False):
         websocket.enableTrace(trace)
-        self.baseUrl = base_url
-        self.apiKey = api_key
-        self.privateKey = private_key
+        self.baseUrl = baseUrl
+        self.apiKey = apiKey
+        self.privateKey = privateKey
         self.timeout = timeout
 
         self.ws = None
@@ -83,7 +84,7 @@ class KrakenWSMethods():
             sleep(1)
 
     def __connect(self):
-        self.ws = websocket.WebSocketApp(self.base_url,
+        self.ws = websocket.WebSocketApp(self.baseUrl,
                                          on_message=self.__on_message,
                                          on_open=self.__on_open,
                                          on_close=self.__on_close,
