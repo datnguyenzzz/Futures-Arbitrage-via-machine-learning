@@ -1,15 +1,19 @@
-import kraken_RESTv3 as krakenRestApi
+import binance_RESTv1 as binance
+from datetime import datetime
 
-apiPath = "https://futures.kraken.com/derivatives/api/v3"
-apiKey = "g84thgQEkIYflA3cCFuI7Jf8zFytMasoSyyAW87IpoPtQydFsmsxu/Hg"
-privateKey = "gp/0DCpaR6h1segtkW/gQuRSrI8SZq2fqVoO8I+mYmuBMtnxqjzC9NeyolvZbsR1iDkR3c5mtELCVDxpdz3skQ=="
-timeout = 10
+baseUrl="https://fapi.binance.com"
+apiKey=""
+secretKey=""
+
+client = binance.binanceRESTApi(baseUrl,apiKey,secretKey)
+
+strStart = "2020-01-01 00:00:00"
+startTime = datetime.timestamp(datetime.strptime(strStart, '%Y-%m-%d %H:%M:%S'))
+strEnd = "2020-07-14 00:00:00"
+endTime = datetime.timestamp(datetime.strptime(strEnd, '%Y-%m-%d %H:%M:%S'))
+
+res = client.get_candlestick_data(symbol="BTCUSDT", interval="1m",
+                                  startTime=None, endTime=None, limit=100)
 
 
-restPublic = krakenRestApi.KrakenApiMethods(apiPath,apiKey,privateKey,timeout)
-
-def ApiCall():
-    res = restPublic.get_tickers()
-    print("tickers:\n", res)
-
-ApiCall()
+print(res)
