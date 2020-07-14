@@ -21,7 +21,7 @@ class binanceRESTApi():
         if request.method == "GET":
             print(request.host + request.url)
             response = requests.get(request.host + request.url, headers=request.header)
-            return response.text
+            return json.loads(response.text)
 
     def create_get_request(self,url,encoded):
         request = RestApiReq()
