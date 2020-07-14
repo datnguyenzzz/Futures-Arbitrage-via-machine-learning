@@ -1,27 +1,15 @@
-import kraken_WSv1 as krakenWsApi
+import kraken_RESTv3 as krakenRestApi
 
-apiPath = "wss://futures.kraken.com/ws/v1"
+apiPath = "https://futures.kraken.com/derivatives/api/v3"
 apiKey = "g84thgQEkIYflA3cCFuI7Jf8zFytMasoSyyAW87IpoPtQydFsmsxu/Hg"
 privateKey = "gp/0DCpaR6h1segtkW/gQuRSrI8SZq2fqVoO8I+mYmuBMtnxqjzC9NeyolvZbsR1iDkR3c5mtELCVDxpdz3skQ=="
 timeout = 10
-trace = False
 
-ws = krakenWsApi.KrakenWSMethods(apiPath,apiKey,privateKey,timeout,trace)
 
-def subscribe():
-    productIds = ["PI_XBTUSD"]
+restPublic = krakenRestApi.KrakenApiMethods(apiPath,apiKey,privateKey,timeout)
 
-    feed = "ticker"
-    ws.subscribe_public(feed,productIds)
+def ApiCall():
+    res = restPublic.get_tickers()
+    print("tickers:\n", res)
 
-def unsubscribe():
-    productIds = ["FV_XRPXBT_180615"]
-
-    feed = "ticker"
-    ws.unsubscribe_public(feed,productIds)
-
-input()
-subscribe()
-input()
-unsubscribe()
-exit()
+ApiCall()
