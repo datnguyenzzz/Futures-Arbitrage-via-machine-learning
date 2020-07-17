@@ -24,21 +24,21 @@ binance_client = Client(api_key=binance_api_key, api_secret=binance_api_secret)
 
 ### FUNCTIONS
 def minutes_of_new_data(symbol, kline_size, data, source):
-    print(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp'])
-    print(type(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp']))
+    #print(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp'])
+    #print(type(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp']))
     if len(data) > 0:  old = parser.parse(data["timestamp"].iloc[-1])
     elif source == "binance": old = datetime.strptime('01 Jan 2019', '%d %b %Y')
     #elif source == "bitmex": old = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp']
     elif source == "bitmex": old = datetime.strptime("2019-01-01 00:00:00",'%Y-%m-%d %H:%M:%S')
-    if source == "binance": new = pd.to_datetime(binance_client.get_klines(symbol=symbol, interval=kline_size)[-1][0], unit='ms')
+    if source == "binance": new = datetime.strptime('15 Jul 2020', '%d %b %Y')
     #if source == "bitmex": new = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=True).result()[0][0]['timestamp']
     if source == "bitmex": new = datetime.strptime("2020-07-15 00:00:00",'%Y-%m-%d %H:%M:%S')
-    print(old)
-    print(type(old))
+    #print(old)
+    #print(type(old))
     return old, new
 
 def get_all_binance(symbol, kline_size, save = False):
-    filename = '%s-%s-data.csv' % (symbol, kline_size)
+    filename = 'Binance-%s-%s-data.csv' % (symbol, kline_size)
     if os.path.isfile(filename): data_df = pd.read_csv(filename)
     else: data_df = pd.DataFrame()
     oldest_point, newest_point = minutes_of_new_data(symbol, kline_size, data_df, source = "binance")
@@ -62,7 +62,7 @@ def get_all_binance(symbol, kline_size, save = False):
     return data_df
 
 def get_all_bitmex(symbol, kline_size, save = False):
-    filename = '%s-%s-data.csv' % (symbol, kline_size)
+    filename = 'Bitmex-%s-%s-data.csv' % (symbol, kline_size)
     if os.path.isfile(filename): data_df = pd.read_csv(filename)
     else: data_df = pd.DataFrame()
     oldest_point, newest_point = minutes_of_new_data(symbol, kline_size, data_df, source = "bitmex")
@@ -76,13 +76,12 @@ def get_all_bitmex(symbol, kline_size, save = False):
             new_time = (oldest_point + timedelta(minutes = round_num * batch_size * binsizes[kline_size]))
             data = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=batch_size, startTime = new_time).result()[0]
             temp_df = pd.DataFrame(data)
-            temp_df = temp_df.drop(columns=['symbol', 'trades', 'vwap', 'lastSize', 'turnover', 'homeNotional','foreignNotional'])
+            #temp_df = temp_df.drop(columns=['symbol', 'trades', 'vwap', 'lastSize', 'turnover', 'homeNotional', 'foreignNotional'])
             data_df = data_df.append(temp_df)
     data_df.set_index('timestamp', inplace=True)
     if save and rounds > 0: data_df.to_csv(filename)
     print('All caught up..!')
     return data_df
 
-
-get_all_bitmex('XBTUSD', '1m', save = True)
-#et_all_binance('BTCUSDT', '1m', save = True)
+get_all_bitmex('XRPUSD', '1m', save = True)
+#get_all_binance('XRPUSDT', '1m', save = True)
