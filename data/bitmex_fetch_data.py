@@ -27,10 +27,10 @@ def minutes_of_new_data(symbol, kline_size, data, source):
     #print(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp'])
     #print(type(bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp']))
     if len(data) > 0:  old = parser.parse(data["timestamp"].iloc[-1])
-    elif source == "binance": old = datetime.strptime('01 Jan 2019', '%d %b %Y')
+    elif source == "binance": old = datetime.strptime('01 Jan 2019 00:00:00', '%d %b %Y %H:%M:%S')
     #elif source == "bitmex": old = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=False).result()[0][0]['timestamp']
     elif source == "bitmex": old = datetime.strptime("2019-01-01 00:00:00",'%Y-%m-%d %H:%M:%S')
-    if source == "binance": new = datetime.strptime('15 Jul 2020', '%d %b %Y')
+    if source == "binance": new = datetime.strptime('15 Jul 2020 00:00:00', '%d %b %Y %H:%M:%S')
     #if source == "bitmex": new = bitmex_client.Trade.Trade_getBucketed(symbol=symbol, binSize=kline_size, count=1, reverse=True).result()[0][0]['timestamp']
     if source == "bitmex": new = datetime.strptime("2020-07-15 00:00:00",'%Y-%m-%d %H:%M:%S')
     #print(old)
@@ -83,5 +83,5 @@ def get_all_bitmex(symbol, kline_size, save = False):
     print('All caught up..!')
     return data_df
 
-get_all_bitmex('XRPUSD', '1m', save = True)
-#get_all_binance('XRPUSDT', '1m', save = True)
+#get_all_bitmex('XRPUSD', '1m', save = True)
+get_all_binance('BTCUSDT', '1m', save = True)
