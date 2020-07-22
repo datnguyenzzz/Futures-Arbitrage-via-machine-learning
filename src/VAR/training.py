@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 
 from statsmodels.tsa.api import VAR
 
+binance_exchanges = ['BTCUSDT','ETHUSDT']
+bitmex_exchanges = ['XBTUSD','ETHUSD']
+hitbtc_exchanges = ['BTCUSD','ETHUSD']
+markets = ['Binance','Bitmex','Hitbtc']
+
 data_path = 'D:\My_Code\database\Futures_summer_2020\preprocessed_data.csv'
 
 data = pd.read_csv(data_path)
@@ -14,61 +19,47 @@ data = data.drop(columns=['Unnamed: 0'])
 
 n = np.shape(data)[0]
 train_data = data[0 : int(0.7 * n)]
-
-
-"""
-#model
-
-model = VAR(train_data)
-results = model.fit(1)
-
-params = results.params.values
-
-print(params.shape)
-
-
-df = pd.DataFrame(params)
-df.to_csv("D:\My_Code\database\Futures_summer_2020\output\VAR\model_prediction.csv")
-"""
-
-
-params = pd.read_csv("D:\My_Code\database\Futures_summer_2020\output\VAR\model_prediction.csv")
-params = params.drop(columns=['Unnamed: 0'])
-
-print(params)
-
 validation_data = data[int(0.7 * n) : int(0.85 * n)]
 test_data = data[int(0.85 * n) : ]
 
-val_start = validation_data.index.min()
-val_end = validation_data.index.max()
+header_return = []
+for market in markets:
+    if (market=='Binance'):
+        tmp = binance_exchanges
+    elif (market=='Bitmex'):
+        tmp = bitmex_exchanges
+    else:
+        tmp = hitbtc_exchanges
 
-prediction = np.zeros((len(validation_data), 24)).astype(float)
+    for exchange in tmp:
+        header_return.append(market+'_'+exchange+'_return')
 
-#split to A
-A0 = params.iloc[0,:].to_numpy().reshape(24,1)
-n_features = 24
+print(header_return)
 
-p_lags = 1
+train_return = train_data[header_return]
+validtaion_return = validation_data[header_return]
 
-#print(params.iloc[(1-1) * n_features + 1 : 1 * n_features + 1, : ])
+#model validtaion
 
+model = VAR(train_return)
+results = model.fit(1)
 
+lag_order = results.k_ar
+train_return = train_return.to_numpy()
+prediction = results.forecast(train_return[-lag_order:], validtaion_return.shape[0])
 
-for i in range(val_start,val_end+1):
+finalDF = pd.DataFrame(prediction,columns = header_return)
 
-    Yi = params.iloc[0,:].to_numpy().reshape(n_features,1).astype(float)
+ax = plt.gca()
 
-    for p in range(1, p_lags+1):
-        j = i - p
-        if (j < val_start):
-            Yj = data.iloc[j, :].to_numpy().reshape(n_features,1)
-        else:
-            Yj = prediction[j - val_start, :].reshape(n_features,1)
-        Yi += np.dot(params.iloc[(p-1) * n_features + 1 : p * n_features + 1, : ].to_numpy().reshape(n_features,n_features), Yj)
+path_return = 'Binance_BTCUSDT_return'
 
-    prediction[i-val_start, :] = Yi.reshape(1,n_features)
+print(finalDF)
 
+finalDF[path_return].plot(color="y",ax=ax)
+validtaion_return[path_return].plot(color="r",ax=ax)
+plt.show()
 
+#finalDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/VAR/test_prediction_var1.csv")
 
-print(prediction)
+#df.to_csv("D:\My_Code\database\Futures_summer_2020\output\VAR\model_prediction.csv")
