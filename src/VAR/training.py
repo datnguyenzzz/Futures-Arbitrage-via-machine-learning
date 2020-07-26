@@ -60,6 +60,6 @@ finalDF[path_return].plot(color="y",ax=ax)
 validtaion_return[path_return].plot(color="r",ax=ax)
 plt.show()
 
-#finalDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/VAR/test_prediction_var1.csv")
+finalDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/VAR/test_prediction_var1.csv")
 
 #df.to_csv("D:\My_Code\database\Futures_summer_2020\output\VAR\model_prediction.csv")
