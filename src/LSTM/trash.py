@@ -26,10 +26,11 @@ def lstm_model(lag_order: int,
                learning_rate: int,
                individual_output_dim: int,
                epochs: int = 200,
-               batch_size: int = 90,
+               batch_size: int = 96,
                combined_output_dim: int = 6, #= amount of stock
                dropout_rate: float = 0.1,
-               exogenous_features: int = 4):
+               exogenous_features: int = 4,
+               percentile: int = 10):
 
     #split data
 
@@ -85,7 +86,7 @@ def lstm_model(lag_order: int,
 
     LSTM_model = Model(inputs=tensor, outputs=dense_layer)
 
-    RMSprop = optimizer.Adam(lr = learning_rate)
+    RMSprop = optimizer.RMSprop(lr = learning_rate)
 
     def customized_loss(y_pred, y_true):
         num = K.sum(K.square(y_pred - y_true), axis=-1)
@@ -98,20 +99,11 @@ def lstm_model(lag_order: int,
 
     LSTM_model.compile(optimizer = RMSprop, loss=customized_loss)
 
-    history = LSTM_model.fit([x_train[:,i,:,:] for i in range(amount_of_stocks)],
+    Fitting = LSTM_model.fit([x_train[:,i,:,:] for i in range(amount_of_stocks)],
                               y_train, epochs=epochs, batch_size=batch_size,
                               validation_data=([x_val[:,i,:,:] for i in range(amount_of_stocks)] , y_val))
 
     prediction_returns = LSTM_model.predict([x_val[:,i,:,:] for i in range(amount_of_stocks)])
-
-    print(history.history.keys())
-
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train','validation'], loc='upper right')
-    plt.show()
 
     all_mse = []
     for i in range(amount_of_stocks):
@@ -125,7 +117,6 @@ def lstm_model(lag_order: int,
     return (np.mean(avg_mse) , prediction_returns)
 
 ################################################################################
-"""
 min_MSE = 1e9
 random.seed()
 
@@ -161,11 +152,6 @@ print('Minimum mean MSE is: ', min_MSE)
 print('Minimum lag order is: ', result_lag_order)
 print('Minimum learning rate is: ', result_learning_rate)
 print('Minimum dim individual output is: ', result_individual_output_dim)
-"""
-
-result,prediction_returns = lstm_model(lag_order=25, learning_rate= 0.0001, individual_output_dim=1)
-
-print('min MSE is: ', result)
 
 header_return = []
 for market in markets:
@@ -179,10 +165,9 @@ for market in markets:
     for exchange in tmp:
         header_return.append(market+'_'+exchange+'_return')
 
-returnDF = pd.DataFrame(prediction_returns, columns = header_return)
-returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM.csv")
-"""
+returnDF = pd.DataFrame(result_prediction_returns, columns = header_return)
+returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM1.csv")
+
 #all tries
 df = pd.DataFrame( list(zip(individual_output_dim_list, lag_order_list, learning_rate_list, mean_MSE_list)),columns = ['Number of LSTM units', 'Lag order period', 'Learning rate', 'Mean MSE' ])
 df.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/all_samples_LSTM1.csv")
-"""
