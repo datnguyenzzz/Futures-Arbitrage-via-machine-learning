@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
+import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Dropout, Concatenate, Dense
 from tensorflow.keras import Model, Input
 import tensorflow.keras.optimizers as optimizer
@@ -26,7 +27,7 @@ def lstm_model(lag_order: int,
                learning_rate: int,
                individual_output_dim: int,
                epochs: int = 200,
-               batch_size: int = 90,
+               batch_size: int = 100,
                combined_output_dim: int = 6, #= amount of stock
                dropout_rate: float = 0.1,
                exogenous_features: int = 4):
@@ -87,6 +88,7 @@ def lstm_model(lag_order: int,
 
     RMSprop = optimizer.Adam(lr = learning_rate)
 
+    """
     def customized_loss(y_pred, y_true):
         num = K.sum(K.square(y_pred - y_true), axis=-1)
         y_true_sign = y_true > 0
@@ -95,6 +97,27 @@ def lstm_model(lag_order: int,
         logicals_0_1 = K.cast(logicals, 'float32')
         den = K.sum(logicals_0_1, axis=-1)
         return num/(1 + den)
+    """
+    """
+    def customized_loss(y_pred, y_true):
+        residual =K.cast(y_true - y_pred,'float32')
+        loss = tf.where(residual > 0, tf.multiply(K.square(residual),10.0), K.square(residual))
+        return K.mean(loss)
+    """
+
+    def customized_loss(y_pred, y_true):
+        penalty = 10.0
+        loss = tf.where(tf.less(y_true - y_pred, 0), penalty * tf.square(y_true - y_pred) , tf.square(y_true - y_pred))
+        num = K.sum(loss, axis=-1)
+
+        y_true_sign = y_true > 0
+        y_pred_sign = y_pred > 0
+        logicals = K.equal(y_true_sign, y_pred_sign)
+        logicals_0_1 = K.cast(logicals, 'float32')
+        den = K.sum(logicals_0_1, axis=-1)
+        return num/(0.1 + den)
+        return K.mean(loss)
+
 
     LSTM_model.compile(optimizer = RMSprop, loss=customized_loss)
 
@@ -180,7 +203,7 @@ for market in markets:
         header_return.append(market+'_'+exchange+'_return')
 
 returnDF = pd.DataFrame(prediction_returns, columns = header_return)
-returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM.csv")
+returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM_04.csv")
 """
 #all tries
 df = pd.DataFrame( list(zip(individual_output_dim_list, lag_order_list, learning_rate_list, mean_MSE_list)),columns = ['Number of LSTM units', 'Lag order period', 'Learning rate', 'Mean MSE' ])
