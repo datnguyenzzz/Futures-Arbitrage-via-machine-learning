@@ -39,6 +39,8 @@ print(header_return)
 train_return = train_data[header_return]
 validtaion_return = validation_data[header_return]
 
+#print(train_return)
+
 #model validtaion
 
 model = VAR(train_return)
@@ -56,10 +58,6 @@ path_return = 'Binance_BTCUSDT_return'
 
 print(finalDF)
 
-finalDF[path_return].plot(color="y",ax=ax)
-validtaion_return[path_return].plot(color="r",ax=ax)
-plt.show()
-
-finalDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/VAR/test_prediction_var1.csv")
+finalDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/VAR/prediction_var.csv")
 
 #df.to_csv("D:\My_Code\database\Futures_summer_2020\output\VAR\model_prediction.csv")

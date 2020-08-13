@@ -1,5 +1,4 @@
-import tensorflow as tf
-
-v = tf.Variable(2, dtype='float32')
-
-print(v)
+a = [4,9,5,8]
+b=a.copy()
+print(sorted(a))
+print(b)

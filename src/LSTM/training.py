@@ -26,8 +26,8 @@ dense layer (n - lag_order, amount_of_stocks)
 def lstm_model(lag_order: int,
                learning_rate: int,
                individual_output_dim: int,
-               epochs: int = 200,
-               batch_size: int = 100,
+               epochs: int = 140,
+               batch_size: int = 120,
                combined_output_dim: int = 6, #= amount of stock
                dropout_rate: float = 0.1,
                exogenous_features: int = 4):
@@ -82,13 +82,14 @@ def lstm_model(lag_order: int,
     model_drop = Concatenate()(drop)
     full_LSTM = LSTM(combined_output_dim)(model_drop)
     full_drop = Dropout(dropout_rate)(full_LSTM)
-    dense_layer = Dense(combined_output_dim)(full_drop)
+    dense_layer = Dense(combined_output_dim,activation='softmax')(full_drop)
 
     LSTM_model = Model(inputs=tensor, outputs=dense_layer)
 
-    RMSprop = optimizer.Adam(lr = learning_rate)
+    RMSprop = optimizer.RMSprop(lr = learning_rate)
 
     """
+    00 01
     def customized_loss(y_pred, y_true):
         num = K.sum(K.square(y_pred - y_true), axis=-1)
         y_true_sign = y_true > 0
@@ -99,12 +100,14 @@ def lstm_model(lag_order: int,
         return num/(1 + den)
     """
     """
+    03
     def customized_loss(y_pred, y_true):
         residual =K.cast(y_true - y_pred,'float32')
         loss = tf.where(residual > 0, tf.multiply(K.square(residual),10.0), K.square(residual))
         return K.mean(loss)
     """
-
+    """
+    04-best
     def customized_loss(y_pred, y_true):
         penalty = 10.0
         loss = tf.where(tf.less(y_true - y_pred, 0), penalty * tf.square(y_true - y_pred) , tf.square(y_true - y_pred))
@@ -115,11 +118,22 @@ def lstm_model(lag_order: int,
         logicals = K.equal(y_true_sign, y_pred_sign)
         logicals_0_1 = K.cast(logicals, 'float32')
         den = K.sum(logicals_0_1, axis=-1)
-        return num/(0.1 + den)
-        return K.mean(loss)
+        return num/(0.5 + den)
+    """
+    """
+    def customized_loss(y_pred, y_true):
+        penalty = 10.0
+        loss = tf.where(tf.less(y_true - y_pred, 0), penalty * tf.square(y_true - y_pred) , tf.square(y_true - y_pred))
+        num = K.sum(loss, axis=-1)
 
-
-    LSTM_model.compile(optimizer = RMSprop, loss=customized_loss)
+        y_true_sign = y_true > 0
+        y_pred_sign = y_pred > 0
+        logicals = K.equal(y_true_sign, y_pred_sign)
+        logicals_0_1 = K.cast(logicals, 'float32')
+        den = K.sum(logicals_0_1, axis=-1)
+        return num/(0.05 + den)
+    """
+    LSTM_model.compile(optimizer = RMSprop, loss='categorical_crossentropy')
 
     history = LSTM_model.fit([x_train[:,i,:,:] for i in range(amount_of_stocks)],
                               y_train, epochs=epochs, batch_size=batch_size,
@@ -203,7 +217,7 @@ for market in markets:
         header_return.append(market+'_'+exchange+'_return')
 
 returnDF = pd.DataFrame(prediction_returns, columns = header_return)
-returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM_04.csv")
+returnDF.to_csv("D:/My_Code/database/Futures_summer_2020/output/LSTM/prediction_LSTM_05.csv")
 """
 #all tries
 df = pd.DataFrame( list(zip(individual_output_dim_list, lag_order_list, learning_rate_list, mean_MSE_list)),columns = ['Number of LSTM units', 'Lag order period', 'Learning rate', 'Mean MSE' ])
